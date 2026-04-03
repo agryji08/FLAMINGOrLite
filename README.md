@@ -7,10 +7,17 @@ Now only support `.hic` and `.mcool`.
 The implementation of the algorithm is based on R. It depends on 3 basic R packages: `strawr`, `parallel`, `prodlim` and `Matrix`.
 
 ## Installation of the FLAMINGOrLite package
+Install from GitHub (replace with your actual repo path):
+
 ```
 install.packages("devtools")
-library(devtools)
-install_github('JiaxinYangJX/FLAMINGOrLite',ref='HEAD')
+devtools::install_github("<owner>/FLAMINGOrLite", ref = "HEAD")
+```
+
+Or install from a local clone:
+
+```
+devtools::install_local(".")
 ```
 
 ## Differences between FLAMINGOrLite and FLAMINGOr
