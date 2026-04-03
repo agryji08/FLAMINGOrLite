@@ -7,20 +7,49 @@
 #' @return Write out a .vtk file for visualization using Paraview
 #' @export
 write.vtk <- function(points,lookup_table,name,opt_path){
-  write.table("# vtk DataFile Version 1.0",opt_path,col.names = F,row.names = F,sep = "\n",quote=F)
-  # cat("# vtk DataFile Version 1.0\n")
-  write.table(name,opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table("ASCII",opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table("\nDATASET POLYDATA",opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  n_points <- dim(points)[1]
-  write.table(paste("POINTS",n_points,"float"),opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table(points,opt_path,col.names = F,row.names = F,quote=F,append = T)
-  write.table("\n",opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table(paste("LINES 1",n_points+1,n_points),opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  lines <- 0:(n_points-1)
-  write.table(lines,opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table("\n",opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table(paste("POINT_DATA",n_points),opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table(paste("SCALARS volume float\n","LOOKUP_TABLE default"),opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
-  write.table(lookup_table,opt_path,col.names = F,row.names = F,sep = "\n",quote=F,append = T)
+  points <- as.matrix(points)
+  if (!is.numeric(points)) {
+    stop("`points` must be numeric and contain x, y, z coordinates.")
+  }
+  if (ncol(points) != 3) {
+    stop("`points` must have exactly 3 columns (x, y, z).")
+  }
+
+  n_points <- nrow(points)
+
+  if (length(lookup_table) != n_points) {
+    stop("`lookup_table` length must match the number of rows in `points`.")
+  }
+
+  if (is.numeric(lookup_table)) {
+    scalar_type <- "float"
+    lookup_values <- lookup_table
+  } else {
+    warning("`lookup_table` is not numeric; converting labels to integer ids for VTK output.")
+    lookup_values <- as.integer(as.factor(lookup_table))
+    scalar_type <- "int"
+  }
+
+  con <- file(opt_path, open = "wt")
+  on.exit(close(con), add = TRUE)
+
+  writeLines(c(
+    "# vtk DataFile Version 1.0",
+    as.character(name),
+    "ASCII",
+    "DATASET POLYDATA",
+    paste("POINTS", n_points, "float")
+  ), con)
+
+  writeLines(apply(points, 1, function(x) paste(x, collapse = " ")), con)
+
+  writeLines(c(
+    paste("LINES 1", n_points + 1),
+    paste(c(n_points, 0:(n_points - 1)), collapse = " "),
+    paste("POINT_DATA", n_points),
+    paste("SCALARS volume", scalar_type),
+    "LOOKUP_TABLE default"
+  ), con)
+
+  writeLines(as.character(lookup_values), con)
 }
