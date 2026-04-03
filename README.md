@@ -11,7 +11,7 @@ Install from GitHub (replace with your actual repo path):
 
 ```
 install.packages("devtools")
-devtools::install_github("<owner>/FLAMINGOrLite", ref = "HEAD")
+devtools::install_github("agryji08/FLAMINGOrLite", ref = "HEAD")
 ```
 
 Or install from a local clone:
