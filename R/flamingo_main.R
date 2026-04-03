@@ -14,6 +14,8 @@
 #' @param inf_dist Maximun allowed distance betwee any two points. Default = 3.
 #' @param error_threshold Error thresholds for reconstruction. Default = 1e-3.
 #' @param max_iter Maximum iterations. Default = 500.
+#' @param exclude_regions Optional regions to exclude from final output.
+#'        A data.frame with columns `start` and `end` (bp), and optional `chr`.
 #' @keywords flamingo_main
 #' @return A data.frame containing the FLAMINGO predicted 3D structure.
 #' @export
@@ -32,7 +34,8 @@ flamingo_main <- function(hic_data,
                           alpha = -0.25,
                           inf_dist = 4,
                           error_threshold = 1e-3,
-                          max_iter=500)
+                          max_iter=500,
+                          exclude_regions = NULL)
 {
   #### check Args
   b = Sys.time()
@@ -117,7 +120,42 @@ flamingo_main <- function(hic_data,
   res$start = (res$frag_id-1) * frag_res
   res$end = res$frag_id * frag_res
   res = res[,c('chr','start','end','x','y','z')]
+
+  if (!is.null(exclude_regions)) {
+    res <- filter_regions(res, exclude_regions)
+  }
+
   print(paste('Reconstruction sucessfully! Finshed time: ',round(as.numeric(difftime(Sys.time(),b,units='mins')),digits=2), ' mins'))
 
   return(res)
+}
+
+filter_regions <- function(structure_df, exclude_regions){
+  if (!is.data.frame(exclude_regions)) {
+    stop('`exclude_regions` must be a data.frame with columns start/end and optional chr.')
+  }
+
+  required_cols <- c('start', 'end')
+  if (!all(required_cols %in% colnames(exclude_regions))) {
+    stop('`exclude_regions` must include `start` and `end` columns.')
+  }
+
+  if (any(is.na(exclude_regions$start)) || any(is.na(exclude_regions$end))) {
+    stop('`exclude_regions` cannot contain NA values in `start` or `end`.')
+  }
+
+  if (any(exclude_regions$start >= exclude_regions$end)) {
+    stop('Each excluded region must satisfy start < end.')
+  }
+
+  drop_flag <- rep(FALSE, nrow(structure_df))
+  has_chr <- 'chr' %in% colnames(exclude_regions)
+
+  for (i in seq_len(nrow(exclude_regions))) {
+    chr_match <- if (has_chr) structure_df$chr == exclude_regions$chr[i] else TRUE
+    overlap <- chr_match & (structure_df$start < exclude_regions$end[i]) & (structure_df$end > exclude_regions$start[i])
+    drop_flag <- drop_flag | overlap
+  }
+
+  structure_df[!drop_flag, , drop = FALSE]
 }

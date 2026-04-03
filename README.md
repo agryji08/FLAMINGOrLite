@@ -7,10 +7,17 @@ Now only support `.hic` and `.mcool`.
 The implementation of the algorithm is based on R. It depends on 3 basic R packages: `strawr`, `parallel`, `prodlim` and `Matrix`.
 
 ## Installation of the FLAMINGOrLite package
+Install from GitHub (replace with your actual repo path):
+
 ```
 install.packages("devtools")
-library(devtools)
-install_github('JiaxinYangJX/FLAMINGOrLite',ref='HEAD')
+devtools::install_github("<owner>/FLAMINGOrLite", ref = "HEAD")
+```
+
+Or install from a local clone:
+
+```
+devtools::install_local(".")
 ```
 
 ## Differences between FLAMINGOrLite and FLAMINGOr
@@ -36,12 +43,37 @@ res = flamingo_main(hic_data='4DNFI1UEG1HD.hic',
                     nThread=20)
 ```
 
+To exclude centromere/telomere (or any custom regions), pass `exclude_regions`:
+
+```
+exclude_regions <- data.frame(
+  chr = c('chr21', 'chr21'),
+  start = c(1, 46709984),
+  end = c(500000, 48129895)
+)
+
+res = flamingo_main(hic_data='4DNFI1UEG1HD.hic',
+                    file_format='hic',
+                    domain_res=1e6,
+                    frag_res=5e3,
+                    chr_name='chr21',
+                    normalization='KR',
+                    nThread=20,
+                    exclude_regions=exclude_regions)
+```
+
 ## Key functions
 If the genome comprises over 200 fragments, we strongly recommend users employ `flamingo_main` rather than `flamingo_basic` for hierarchical structure reconstruction. Users should carefully choose appropriate values for *domain_res* and *frag_res* to **strike a balance between the number of domains in the skeleton (genome size / domain_res) and the number of fragments within each domain (domain_res / frag_res)**.
 
 ---
 ### `flamingo_main`
 Main function of FLAMINGO, hieractically reconstruct 3D genome structure.
+
+Function signature (main args):
+
+```
+flamingo_main(..., exclude_regions = NULL)
+```
 
 This function can be used to efficiently predict the structure of high-resolution whole chromosome structures.
 
@@ -61,6 +93,10 @@ Output:
 | 5 | y | y coordinate |
 | 6 | z | z coordinate |
 
+
+`exclude_regions` (optional): a data.frame with columns `start` and `end` (bp), and optional `chr`.
+Any fragment overlapping these intervals will be removed from the final output table.
+This is useful for excluding centromere/telomere or other problematic regions.
 
 Type `?flamingo_main` for detailed explanations of each argument.
 
@@ -91,9 +127,9 @@ write.vtk(points,lookup_table,name,opt_path)
 
 Arguments:
 
-`points`: 3D coordinates predicted by FLAMINGO in the x,y,z format. 3 by N matrix.
+`points`: 3D coordinates predicted by FLAMINGO in the x,y,z format. **N by 3** matrix/data.frame.
 
-`lookup_table`: The annotation of each point, could be labels or scores, i.e. the compartment PC scores. N-dimensional vector
+`lookup_table`: The annotation of each point (labels or scores), e.g. compartment PC scores. Length must equal N. Non-numeric labels are automatically mapped to integer ids for VTK export.
 
 `name`: output file name annotated within the file. String.
 
@@ -102,6 +138,10 @@ Arguments:
 Output:
 
 A `.vtk` file stored at `opt_path` for ParaView visualization.
+
+Input validation notes:
+- `points` must be numeric with exactly 3 columns.
+- `lookup_table` length must match the number of points.
 
 Type `?write.vtk` for detailed explanations of each argument.
 
