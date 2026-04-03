@@ -19,7 +19,8 @@ flamingo_main(
   alpha = -0.25,
   inf_dist = 4,
   error_threshold = 0.001,
-  max_iter = 500
+  max_iter = 500,
+  exclude_regions = NULL
 )
 }
 \arguments{
@@ -52,6 +53,8 @@ flamingo_main(
 \item{error_threshold}{Error thresholds for reconstruction. Default = 1e-3.}
 
 \item{max_iter}{Maximum iterations. Default = 500.}
+
+\item{exclude_regions}{Optional regions to exclude from final output. A data.frame with columns \code{start} and \code{end} (in bps), and optional \code{chr}.}
 }
 \value{
 A data.frame containing the FLAMINGO predicted 3D structure.
