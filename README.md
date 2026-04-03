@@ -62,6 +62,12 @@ If the genome comprises over 200 fragments, we strongly recommend users employ `
 ### `flamingo_main`
 Main function of FLAMINGO, hieractically reconstruct 3D genome structure.
 
+Function signature (main args):
+
+```
+flamingo_main(..., exclude_regions = NULL)
+```
+
 This function can be used to efficiently predict the structure of high-resolution whole chromosome structures.
 
 It takes three steps:
@@ -80,6 +86,10 @@ Output:
 | 5 | y | y coordinate |
 | 6 | z | z coordinate |
 
+
+`exclude_regions` (optional): a data.frame with columns `start` and `end` (bp), and optional `chr`.
+Any fragment overlapping these intervals will be removed from the final output table.
+This is useful for excluding centromere/telomere or other problematic regions.
 
 Type `?flamingo_main` for detailed explanations of each argument.
 
@@ -110,9 +120,9 @@ write.vtk(points,lookup_table,name,opt_path)
 
 Arguments:
 
-`points`: 3D coordinates predicted by FLAMINGO in the x,y,z format. 3 by N matrix.
+`points`: 3D coordinates predicted by FLAMINGO in the x,y,z format. **N by 3** matrix/data.frame.
 
-`lookup_table`: The annotation of each point, could be labels or scores, i.e. the compartment PC scores. N-dimensional vector
+`lookup_table`: The annotation of each point (labels or scores), e.g. compartment PC scores. Length must equal N. Non-numeric labels are automatically mapped to integer ids for VTK export.
 
 `name`: output file name annotated within the file. String.
 
@@ -121,6 +131,10 @@ Arguments:
 Output:
 
 A `.vtk` file stored at `opt_path` for ParaView visualization.
+
+Input validation notes:
+- `points` must be numeric with exactly 3 columns.
+- `lookup_table` length must match the number of points.
 
 Type `?write.vtk` for detailed explanations of each argument.
 
