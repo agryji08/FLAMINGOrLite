@@ -36,6 +36,25 @@ res = flamingo_main(hic_data='4DNFI1UEG1HD.hic',
                     nThread=20)
 ```
 
+To exclude centromere/telomere (or any custom regions), pass `exclude_regions`:
+
+```
+exclude_regions <- data.frame(
+  chr = c('chr21', 'chr21'),
+  start = c(1, 46709984),
+  end = c(500000, 48129895)
+)
+
+res = flamingo_main(hic_data='4DNFI1UEG1HD.hic',
+                    file_format='hic',
+                    domain_res=1e6,
+                    frag_res=5e3,
+                    chr_name='chr21',
+                    normalization='KR',
+                    nThread=20,
+                    exclude_regions=exclude_regions)
+```
+
 ## Key functions
 If the genome comprises over 200 fragments, we strongly recommend users employ `flamingo_main` rather than `flamingo_basic` for hierarchical structure reconstruction. Users should carefully choose appropriate values for *domain_res* and *frag_res* to **strike a balance between the number of domains in the skeleton (genome size / domain_res) and the number of fragments within each domain (domain_res / frag_res)**.
 
